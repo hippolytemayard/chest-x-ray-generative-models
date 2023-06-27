@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "chest-x-ray-ddpm"
+version = "0.1.0"
+description = ""
+authors = ["Hippolyte Mayard"]
+readme = "README.md"
+#packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.25.0"
+torch = "^2.0.1"
+torchvision = "^0.15.2"
+einops = "^0.6.1"
+pillow = "^9.5.0"
+tqdm = "^4.65.0"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.isort]
+line_length = 120
+profile = 'black'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
