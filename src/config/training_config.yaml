@@ -1,0 +1,15 @@
+ddpm:
+  size: 128
+  unet:
+    channels: 1
+    dim_mults: !!python/tuple [1, 2, 4, 8]
+
+  gaussian_diffusion:
+    timesteps: 1000
+    sampling_timesteps: 250
+
+  trainer: 
+    train_batch_size: 1
+    train_lr: 8.e-5 
+    train_num_steps: 700000
+    gradient_accumulate_every: 2
