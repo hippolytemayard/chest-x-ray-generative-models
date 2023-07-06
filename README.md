@@ -1,19 +1,22 @@
 # chest-x-ray-ddpm
 
+
 Implementation of [Denoising Diffusion Probabilistic Model](https://arxiv.org/abs/2006.11239) [1] for chest X-ray image generation. \
 The dataset used for this project is an open dataset [2] and is available publicly on [Kaggle](https://www.kaggle.com/datasets/francismon/curated-covid19-chest-xray-dataset).
 
 
-<img src="./images/diffusion_chest.png" alt="drawing" width="400"/>
+<img src="./images/diffusion_chest.png" alt="drawing" width="800"/>
 
 
 
-This implementation is derived from the following Pytorch implementation [![GitHub](https://i.stack.imgur.com/tskMh.png)GitHub](https://github.com/lucidrains/denoising-diffusion-pytorch)
+This implementation is based on an existing implementation: [![GitHub](https://i.stack.imgur.com/tskMh.png)GitHub](https://github.com/lucidrains/denoising-diffusion-pytorch)
 
 ## Denoising Diffusion Probabilistic Model 
 
+Download the pre-trained checkpoints [here](https://drive.google.com/file/d/1EhrEUjh0wgG_BDNKzUHJd0lO5zQyt7JM/view?usp=sharing).
+Use the notebook and the code to generate your own samples.
 
-<img src="./images/generated-chest-x-rays.png" alt="drawing" width="400"/>
+<img src="./images/generated-sample.png" alt="drawing" width="600"/>
 
 ## Install 
 
@@ -101,7 +104,7 @@ trainer = Trainer(
 trainer.train()
 ```
 
-You can also use the command line using argparse \
+You can also use the command line using argparse 
 
 ```bash
 poetry run python src/training/train.py 
@@ -109,5 +112,5 @@ poetry run python src/training/train.py
 
 ## Citations
 
-[1] Denoising Diffusion Probabilistic Model, Ho et al. (2020) \
+[1] Ho, J., Chen, X., Srinivas, A., Duan, Y., Abbeel, P., & Arora, S. (2020). Denoising Diffusion Probabilistic Models. arXiv preprint arXiv:2006.11239. \
 [2] Curated Dataset for COVID-19 Posterior-Anterior Chest Radiography Images (X-Rays), Sait et al. (2020)
