@@ -5,7 +5,7 @@ Implementation of [Denoising Diffusion Probabilistic Model](https://arxiv.org/ab
 The dataset used for this project is an open dataset [2] and is available publicly on [Kaggle](https://www.kaggle.com/datasets/francismon/curated-covid19-chest-xray-dataset).
 
 
-<img src="./images/diffusion_chest.png" alt="drawing" width="800"/>
+<img src="./images/diffusion_chest.png" alt="drawing" width="600"/>
 
 
 
