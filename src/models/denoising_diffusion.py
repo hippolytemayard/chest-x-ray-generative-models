@@ -921,26 +921,22 @@ class Trainer(object):
         return self.device
 
     def save(self, milestone):
-        if not self.accelerator.is_local_main_process:
-            return
 
         data = {
             'step': self.step,
-            'model': self.accelerator.get_state_dict(self.model),
+            'model': self.model.state_dict(),
             'opt': self.opt.state_dict(),
-            'ema': self.ema.state_dict(),
             'scaler': None,
         }
 
         torch.save(data, str(self.results_folder / f'model-{milestone}.pt'))
 
     def load(self, milestone):
-        accelerator = self.accelerator
-        device = accelerator.device
+        device = self..device
 
         data = torch.load(str(self.results_folder / f'model-{milestone}.pt'), map_location=device)
 
-        model = self.accelerator.unwrap_model(self.model)
+        model = self.model
         model.load_state_dict(data['model'])
 
         self.step = data['step']
@@ -949,13 +945,11 @@ class Trainer(object):
         if 'version' in data:
             print(f"loading from version {data['version']}")
 
-        if exists(self.accelerator.scaler) and exists(data['scaler']):
-            self.accelerator.scaler.load_state_dict(data['scaler'])
 
     def train(self):
         device = self.device
 
-        with tqdm(initial = self.step, total = self.train_num_steps, disable = not accelerator.is_main_process) as pbar:
+        with tqdm(initial = self.step, total = self.train_num_steps) as pbar:
 
             while self.step < self.train_num_steps:
 
@@ -964,51 +958,43 @@ class Trainer(object):
                 for _ in range(self.gradient_accumulate_every):
                     data = next(self.dl).to(device)
 
-                    with self.accelerator.autocast():
-                        loss = self.model(data)
-                        loss = loss / self.gradient_accumulate_every
-                        total_loss += loss.item()
+                    loss = self.model(data)
+                    loss = loss / self.gradient_accumulate_every
+                    total_loss += loss.item()
 
                     self.accelerator.backward(loss)
 
-                accelerator.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
                 pbar.set_description(f'loss: {total_loss:.4f}')
-
-                accelerator.wait_for_everyone()
 
                 self.opt.step()
                 self.opt.zero_grad()
 
-                accelerator.wait_for_everyone()
-
                 self.step += 1
-                if accelerator.is_main_process:
-                    self.ema.update()
 
-                    if self.step != 0 and self.step % self.save_and_sample_every == 0:
-                        self.ema.ema_model.eval()
 
-                        with torch.inference_mode():
-                            milestone = self.step // self.save_and_sample_every
-                            batches = num_to_groups(self.num_samples, self.batch_size)
-                            all_images_list = list(map(lambda n: self.ema.ema_model.sample(batch_size=n), batches))
+                if self.step != 0 and self.step % self.save_and_sample_every == 0:
 
-                        all_images = torch.cat(all_images_list, dim = 0)
+                    with torch.inference_mode():
+                        milestone = self.step // self.save_and_sample_every
+                        batches = num_to_groups(self.num_samples, self.batch_size)
+                        all_images_list = list(map(lambda n: self.ema.ema_model.sample(batch_size=n), batches))
 
-                        utils.save_image(all_images, str(self.results_folder / f'sample-{milestone}.png'), nrow = int(math.sqrt(self.num_samples)))
+                    all_images = torch.cat(all_images_list, dim = 0)
 
-                        # whether to calculate fid
+                    utils.save_image(all_images, str(self.results_folder / f'sample-{milestone}.png'), nrow = int(math.sqrt(self.num_samples)))
 
-                        if self.calculate_fid:
-                            fid_score = self.fid_scorer.fid_score()
-                            print(f'fid_score: {fid_score}')
-                        if self.save_best_and_latest_only:
-                            if self.best_fid > fid_score:
-                                self.best_fid = fid_score
-                                self.save("best")
-                            self.save("latest")
-                        else:
-                            self.save(milestone)
+                    # whether to calculate fid
+
+                    if self.calculate_fid:
+                        fid_score = self.fid_scorer.fid_score()
+                        print(f'fid_score: {fid_score}')
+                    if self.save_best_and_latest_only:
+                        if self.best_fid > fid_score:
+                            self.best_fid = fid_score
+                            self.save("best")
+                        self.save("latest")
+                    else:
+                        self.save(milestone)
 
                 pbar.update(1)
 
