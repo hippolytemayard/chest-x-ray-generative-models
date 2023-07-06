@@ -2,36 +2,36 @@ import logging
 
 import torch
 
+from src.config.settings import CONFIG_PATH, DATA_PATH
 from src.models.denoising_diffusion import GaussianDiffusion
 from src.models.unet import Unet
-from src.settings import DATA_PATH
 from src.training.trainer import Trainer
+from src.utils.files import load_omegaconf_from_yaml
 
-if __name__ == "main":
+if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    size = 128
+    config = load_omegaconf_from_yaml(path=CONFIG_PATH)
 
     logging.info("Unet model initializaton")
-    model = Unet(dim=size, channels=1, dim_mults=(1, 2, 4, 8))
+    model = Unet(dim=config.ddpm.size, channels=config.ddpm.unet.channels, dim_mults=config.ddpm.unet.dim_mults)
 
     logging.info("Gaussian diffusion model initializaton")
     diffusion = GaussianDiffusion(
         model,
-        image_size=size,
-        timesteps=1000,  # number of steps
-        sampling_timesteps=250,  # number of sampling timesteps (using ddim for faster inference [see citation for ddim paper])
+        image_size=config.ddpm.size,
+        timesteps=config.ddpm.gaussian_diffusion.timesteps,
+        sampling_timesteps=config.ddpm.gaussian_diffusion.sampling_timesteps,
     )
 
     logging.info("Trainer initializaton")
     trainer = Trainer(
         diffusion_model=diffusion,
         folder=DATA_PATH,
-        train_batch_size=32,
-        train_lr=8e-5,
-        train_num_steps=700000,  # total training steps
-        gradient_accumulate_every=2,  # gradient accumulation steps
-        device="cuda",  # device
+        train_batch_size=config.ddpm.trainer.train_batch_size,
+        train_lr=config.ddpm.trainer.train_lr,
+        train_num_steps=config.ddpm.trainer.train_num_steps,
+        gradient_accumulate_every=config.ddpm.trainer.gradient_accumulate_every,
+        device=device,
     )
 
     trainer.train()
